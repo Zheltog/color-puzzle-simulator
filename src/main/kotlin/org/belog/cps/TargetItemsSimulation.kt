@@ -1,28 +1,16 @@
 package org.belog.cps
 
-import kotlin.math.pow
-
-class TargetColorsSimulation(
-    private val finalInnerColor: Color,
+class TargetItemsSimulation(
+    private val possibleItemsSet: Set<Item>,
     private val stepsCount: Int,
     private val printBanned: Boolean,
     private val outerShouldMatch: Boolean
 ) : AbstractSimulation() {
 
     override fun run() {
-        println("Запуск симуляции с параметрами: $finalInnerColor, $stepsCount, $printBanned, $outerShouldMatch")
+        println("Запуск симуляции с параметрами: $possibleItemsSet, $stepsCount, $printBanned, $outerShouldMatch")
 
-//        val possibleCombinations = ((Color.entries.size * Reaction.entries.size).toDouble())
-//            .pow(stepsCount.toDouble()).toInt()
-
-        val possibleItems = mutableListOf<Item>()
-        for (color in Color.entries) {
-            if (!Item.BANNED_COLORS.contains(color)) {
-                for (reaction in Reaction.entries) {
-                    possibleItems.add(Item(color, reaction))
-                }
-            }
-        }
+        val possibleItems = possibleItemsSet.toList()
 
         val nodes = mutableListOf<Node>()
         for (itemI in possibleItems.indices) {
@@ -43,7 +31,7 @@ class TargetColorsSimulation(
         println("Есть ${totalItemsSequences.size} возможных комбинаций")
 
         val bannedSequences = mutableSetOf<MutableList<Int>>()
-        val successfulSequences = mutableSetOf<MutableList<Int>>()
+        val possibleColors = mutableSetOf<Pair<Color, Color>>()
         for (itemsSequence in totalItemsSequences) {
             val circle = ColorCircle()
             for (i in itemsSequence!!.indices) {
@@ -59,27 +47,17 @@ class TargetColorsSimulation(
                     }
                     break
                 }
-                if (circle.getCurrentInnerColor() == finalInnerColor) {
-                    if (!outerShouldMatch || circle.getCurrentOuterColor() == finalInnerColor) {
-                        if (i < itemsSequence.size - 1) {
-                            successfulSequences.add(itemsSequence.subList(0, i + 1))
-                        } else {
-                            successfulSequences.add(itemsSequence)
-                        }
+                if (i == itemsSequence.size - 1) {
+                    if (!outerShouldMatch || circle.getCurrentOuterColor() == circle.getCurrentInnerColor()) {
+                        possibleColors.add(Pair(circle.getCurrentInnerColor(), circle.getCurrentOuterColor()))
                         break
                     }
                 }
             }
         }
 
-        val successfulSteps = successfulSequences.map {
-            itemIndices -> itemIndices.map {
-                itemIndex -> possibleItems[itemIndex]
-            }.toList()
-        }.toList()
-
-        successfulSteps.forEach {
-            println("Успешная последовательность: $it")
+        possibleColors.forEach {
+            println("Возможное состояние круга: внутренний=${it.first.localization}, внешний=${it.second.localization}")
         }
 
         if (printBanned) {
