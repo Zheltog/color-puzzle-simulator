@@ -49,7 +49,7 @@ private fun processTargetItems() {
     println("Введите желаемое количество шагов")
     val stepsCount = readln()
     val stepsCountInt = stepsCount.toInt()
-    if (stepsCountInt < itemsParsed.size) {
+    if (itemsParsed.size < stepsCountInt) {
         throw IllegalArgumentException("Число предметов должно быть не меньше, чем количество шагов")
     }
     println("Печатать \"заблокированные\" последовательности? (Да = Y / Нет = N)")
