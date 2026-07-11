@@ -30,8 +30,8 @@ class TargetItemsSimulation(
 
         println("Есть ${totalItemsSequences.size} возможных комбинаций")
 
-        val bannedSequences = mutableSetOf<MutableList<Int>>()
-        val possibleColors = mutableSetOf<Pair<Color, Color>>()
+        val bannedSequences = mutableSetOf<SequenceWithResult>()
+        val possibleSequences = mutableSetOf<SequenceWithResult>()
         for (itemsSequence in totalItemsSequences) {
             val circle = ColorCircle()
             for (i in itemsSequence!!.indices) {
@@ -40,36 +40,42 @@ class TargetItemsSimulation(
                     break
                 }
                 if (circle.isBlocked()) {
-                    if (i < itemsSequence.size - 1) {
-                        bannedSequences.add(itemsSequence.subList(0, i + 1))
-                    } else {
-                        bannedSequences.add(itemsSequence)
-                    }
+                    val items = if (i < itemsSequence.size - 1) itemsSequence.subList(0, i + 1) else itemsSequence
+                    bannedSequences.add(SequenceWithResult(
+                        items = items,
+                        finalInnerColor = circle.getCurrentInnerColor(),
+                        finalOuterColor = circle.getCurrentOuterColor()
+                    ))
                     break
                 }
                 if (i == itemsSequence.size - 1) {
                     if (!outerShouldMatch || circle.getCurrentOuterColor() == circle.getCurrentInnerColor()) {
-                        possibleColors.add(Pair(circle.getCurrentInnerColor(), circle.getCurrentOuterColor()))
+                        possibleSequences.add(SequenceWithResult(
+                            items = itemsSequence,
+                            finalInnerColor = circle.getCurrentInnerColor(),
+                            finalOuterColor = circle.getCurrentOuterColor()
+                        ))
                         break
                     }
                 }
             }
         }
 
-        possibleColors.forEach {
-            println("Возможное состояние круга: внутренний=${it.first.localization}, внешний=${it.second.localization}")
+        localize(possibleSequences, possibleItems).forEach {
+            println("Возможная последовательность: $it")
         }
 
         if (printBanned) {
-            val bannedSteps = bannedSequences.map {
-                itemIndices -> itemIndices.map {
-                    itemIndex -> possibleItems[itemIndex]
-                }.toList()
-            }.toList()
-
-            bannedSteps.forEach {
+            localize(bannedSequences, possibleItems).forEach {
                 println("\"Заблокированная\" последовательность: $it")
             }
         }
     }
+
+    private fun localize(sequences: Set<SequenceWithResult>, possibleItems: List<Item>) = sequences.map {
+        val items = it.items.map {
+            itemIndex -> possibleItems[itemIndex]
+        }.toList()
+        "$items (итого бант=${it.finalInnerColor.localization}, тело=${it.finalOuterColor.localization})"
+    }.toList()
 }

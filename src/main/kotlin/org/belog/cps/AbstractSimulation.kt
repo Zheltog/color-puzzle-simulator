@@ -39,4 +39,10 @@ abstract class AbstractSimulation {
     }
 
     protected class Node(val itemIndex: Int, val nextNodes: MutableList<Node>)
+
+    protected data class SequenceWithResult(
+        val items: List<Int>,
+        val finalInnerColor: Color,
+        val finalOuterColor: Color
+    )
 }
